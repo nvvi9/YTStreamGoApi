@@ -2,8 +2,9 @@ package handler
 
 import (
 	"YTStreamGoApi/models"
-	"github.com/nvvi9/YTStreamGo/model"
 	"time"
+
+	"github.com/kkdai/youtube/v2"
 )
 
 type userResponse struct {
@@ -26,30 +27,72 @@ type videoDetailsResponse struct {
 	Title   string `json:"title"`
 }
 
-func newVideoDetailsResponse(videoDetails *model.VideoDetails) *videoDetailsResponse {
+func newVideoDetailsResponse(v *youtube.Video) *videoDetailsResponse {
 	r := new(videoDetailsResponse)
-	r.VideoId = videoDetails.Id
-	r.Title = videoDetails.Title
+	r.VideoId = v.ID
+	r.Title = v.Title
 	return r
 }
 
 type videoDataResponse struct {
-	VideoId string   `json:"videoId"`
-	Title   string   `json:"title"`
-	Streams []string `json:"streams"`
+	VideoId     string               `json:"videoId"`
+	Title       string               `json:"title"`
+	Author      string               `json:"author"`
+	Duration    time.Duration        `json:"duration"`
+	PublishDate time.Time            `json:"publishDate"`
+	Streams     []*streamResponse    `json:"streams"`
+	Thumbnails  []*thumbnailResponse `json:"thumbnails"`
 }
 
-func newVideoDataResponse(videoData *model.VideoData) *videoDataResponse {
-	r := new(videoDataResponse)
-	r.VideoId = videoData.VideoDetails.Id
-	r.Title = videoData.VideoDetails.Title
-	streams := make([]string, len(videoData.Streams))
+type thumbnailResponse struct {
+	Url    string `json:"url"`
+	Width  uint   `json:"width"`
+	Height uint   `json:"height"`
+}
 
-	for i, s := range videoData.Streams {
-		streams[i] = s.Url
+type streamResponse struct {
+	Url      string `json:"url"`
+	MimeType string `json:"mimeType"`
+	Quality  string `json:"quality"`
+	Bitrate  int    `json:"bitrate"`
+}
+
+func newVideoDataResponse(v *youtube.Video) *videoDataResponse {
+	r := new(videoDataResponse)
+	r.VideoId = v.ID
+	r.Title = v.Title
+	r.Author = v.Author
+	r.Duration = v.Duration
+	r.PublishDate = v.PublishDate
+
+	if formats := v.Formats; formats != nil {
+		streams := make([]*streamResponse, len(formats))
+
+		for i, f := range formats {
+			s := new(streamResponse)
+			s.Url = f.URL
+			s.MimeType = f.MimeType
+			s.Quality = f.Quality
+			s.Bitrate = f.Bitrate
+			streams[i] = s
+		}
+
+		r.Streams = streams
 	}
 
-	r.Streams = streams
+	if thumbnails := v.Thumbnails; thumbnails != nil {
+		thumbs := make([]*thumbnailResponse, len(thumbnails))
+
+		for i, t := range thumbnails {
+			thumbnail := new(thumbnailResponse)
+			thumbnail.Url = t.URL
+			thumbnail.Height = t.Height
+			thumbnail.Width = t.Width
+			thumbs[i] = thumbnail
+		}
+
+		r.Thumbnails = thumbs
+	}
 
 	return r
 }

@@ -1,23 +1,19 @@
 package main
 
 import (
-	"YTStreamGoApi/config"
-	"YTStreamGoApi/db"
+	"YTStreamGoApi/extractor"
 	"YTStreamGoApi/handler"
 	"YTStreamGoApi/router"
-	"YTStreamGoApi/store"
 	"log"
 )
 
 func main() {
 	r := router.New()
-	config, _ := config.LoadConfig(".")
-	d := db.New(config)
 
-	userStore := store.NewUserStore(d)
-	h := handler.NewHandler(userStore, config)
+	e := extractor.NewExtractor()
+	h := handler.NewHandler(e)
 	h.Register(r)
-	err := r.Listen(":8585")
+	err := r.Listen(":8080")
 	if err != nil {
 		log.Fatal(err.Error())
 	}

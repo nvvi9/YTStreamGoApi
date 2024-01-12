@@ -1,21 +1,11 @@
 package handler
 
-import (
-	"YTStreamGoApi/config"
-	"YTStreamGoApi/user"
-	"YTStreamGoApi/validator"
-)
+import "YTStreamGoApi/extractor"
 
 type Handler struct {
-	userStore user.Store
-	validator *validator.Validator
-	config    *config.Config
+	e *extractor.Extractor
 }
 
-func NewHandler(userStore user.Store, config *config.Config) *Handler {
-	return &Handler{
-		userStore: userStore,
-		validator: validator.NewValidator(),
-		config:    config,
-	}
+func NewHandler(e *extractor.Extractor) *Handler {
+	return &Handler{e: e}
 }
